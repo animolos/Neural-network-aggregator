@@ -9,15 +9,27 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+using NeuralNetworks;
 
 namespace TelegramBotNeuralNetworks
 {
     class Program
     {
+        private static CaptionGenerator captionGenerator;
         private static TelegramBotClient botClient;
-        
+
+        private static void CaptionGeneratorInit()
+        {
+            Console.WriteLine("Инициализация генератора описаний...");
+            captionGenerator = new CaptionGenerator();
+            captionGenerator.Start();
+            Console.WriteLine("Инициализация завершена.");
+        }
+
         static async Task Main(string[] args)
         {
+            CaptionGeneratorInit();
+
             const string key = "1304989664:AAFzMaU3smtiydm6eUMkG4EdAdoxPtmxdug";
             botClient = new TelegramBotClient(key);
             var me = await botClient.GetMeAsync();
@@ -63,26 +75,32 @@ namespace TelegramBotNeuralNetworks
                 }
                 case MessageType.Photo:
                 {
-                    Console.WriteLine($"Отправил обратно фотографию к {message.Chat.Username}");
                     var file = await botClient.GetFileAsync(message.Photo[^1].FileId);
 
-                    var filepath = $@"C:\Users\Bro_E\Тест\photo_{DateTime.Now:MM_dd_yyyy_HH_mm_ss}.gif";
+                    var filepath = Path.GetTempPath() + @$"\photo_{DateTime.Now:MM_dd_yyyy_HH_mm_ss}.gif";
 
                     await using (var stream = new FileStream(filepath, FileMode.Create))
                     {
                         await botClient.DownloadFileAsync(file.FilePath, stream);
                     }
-                    
+
+                    var caption = captionGenerator.GetCaption(filepath);
+
                     var fileName = filepath.Split(Path.DirectorySeparatorChar).Last();
                     await using (var fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         await botClient.SendPhotoAsync(
                             chatId: message.Chat.Id,
                             photo: new InputOnlineFile(fileStream, fileName),
-                            caption: "Nice Picture",
+                            caption: caption,
                             replyMarkup: new ReplyKeyboardRemove()
                         );
                     }
+
+                    Console.WriteLine($"Отправил обратно фотографию к {message.Chat.Username} с описанием:\n{caption}");
+
+                    System.IO.File.Delete(filepath);
+
                     break;
                 }
                 default:

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -7,6 +7,10 @@
 
     <ItemGroup>
       <PackageReference Include="Telegram.Bot" Version="15.7.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\NeuralNetworks\NeuralNetworks.csproj" />
     </ItemGroup>
 
 </Project>
