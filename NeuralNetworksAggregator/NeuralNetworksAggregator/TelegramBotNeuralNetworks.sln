@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelegramBotNeuralNetworks", "TelegramBotNeuralNetworks.csproj", "{5BD08B09-CA95-443A-9831-1E385167B5F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuralNetworks", "..\NeuralNetworks\NeuralNetworks.csproj", "{DC9D25E6-BC25-43D0-A212-782B661712CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5BD08B09-CA95-443A-9831-1E385167B5F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BD08B09-CA95-443A-9831-1E385167B5F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BD08B09-CA95-443A-9831-1E385167B5F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BD08B09-CA95-443A-9831-1E385167B5F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC9D25E6-BC25-43D0-A212-782B661712CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC9D25E6-BC25-43D0-A212-782B661712CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC9D25E6-BC25-43D0-A212-782B661712CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC9D25E6-BC25-43D0-A212-782B661712CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {567E9C50-5477-4367-8F21-2E72A0EF5B58}
+	EndGlobalSection
+EndGlobal
