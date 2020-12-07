@@ -1,7 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
-namespace NeuralNetworksAggregator.Application.CmdApplication
+namespace NeuralNetworksAggregator.Application.CmdApplication.Commands
 {
     public class CaptionCommand : ConsoleCommand
     {

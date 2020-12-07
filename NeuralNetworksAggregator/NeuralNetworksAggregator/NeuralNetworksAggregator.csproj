@@ -6,14 +6,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Ninject" Version="3.3.4" />
-      <PackageReference Include="ninject.extensions.conventions" Version="3.3.0" />
+      <PackageReference Include="Ninject" Version="4.0.0-beta-0134" />
+      <PackageReference Include="Ninject.Extensions.Conventions" Version="3.3.0" />
       <PackageReference Include="Ninject.Extensions.Factory" Version="3.3.3" />
       <PackageReference Include="Telegram.Bot" Version="15.7.1" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Domain" />
       <Folder Include="Infrastructure" />
+      <Folder Include="UserInterface" />
     </ItemGroup>
 
 </Project>

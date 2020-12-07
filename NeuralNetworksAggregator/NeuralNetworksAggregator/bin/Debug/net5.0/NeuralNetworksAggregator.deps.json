@@ -8,10 +8,10 @@
     ".NETCoreApp,Version=v5.0": {
       "NeuralNetworksAggregator/1.0.0": {
         "dependencies": {
-          "Ninject": "3.3.4",
+          "Ninject": "4.0.0-beta-0134",
+          "Ninject.Extensions.Conventions": "3.3.0",
           "Ninject.Extensions.Factory": "3.3.3",
-          "Telegram.Bot": "15.7.1",
-          "Ninject.Extensions.Conventions": "3.3.0"
+          "Telegram.Bot": "15.7.1"
         },
         "runtime": {
           "NeuralNetworksAggregator.dll": {}
@@ -102,15 +102,21 @@
           }
         }
       },
-      "Ninject/3.3.4": {
+      "Ninject/4.0.0-beta-0134": {
         "dependencies": {
+          "NETStandard.Library": "1.6.1",
+          "System.ComponentModel": "4.3.0",
+          "System.Data.Common": "4.1.0",
+          "System.Diagnostics.Contracts": "4.0.1",
           "System.Reflection.Emit.ILGeneration": "4.3.0",
-          "System.Reflection.Emit.Lightweight": "4.3.0"
+          "System.Reflection.Emit.Lightweight": "4.3.0",
+          "System.Reflection.Extensions": "4.3.0",
+          "System.Reflection.TypeExtensions": "4.3.0"
         },
         "runtime": {
-          "lib/netstandard2.0/Ninject.dll": {
-            "assemblyVersion": "3.3.4.0",
-            "fileVersion": "3.3.4.0"
+          "lib/netstandard1.5/Ninject.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
           }
         }
       },
@@ -128,7 +134,7 @@
       "Ninject.Extensions.Factory/3.3.3": {
         "dependencies": {
           "Castle.Core": "4.2.0",
-          "Ninject": "3.3.4"
+          "Ninject": "4.0.0-beta-0134"
         },
         "runtime": {
           "lib/netstandard2.0/Ninject.Extensions.Factory.dll": {
@@ -279,6 +285,23 @@
           "System.IO": "4.3.0",
           "System.Runtime": "4.3.0",
           "System.Text.Encoding": "4.3.0"
+        }
+      },
+      "System.Data.Common/4.1.0": {
+        "dependencies": {
+          "System.Collections": "4.3.0",
+          "System.Globalization": "4.3.0",
+          "System.IO": "4.3.0",
+          "System.Resources.ResourceManager": "4.3.0",
+          "System.Runtime": "4.3.0",
+          "System.Runtime.Extensions": "4.3.0",
+          "System.Text.RegularExpressions": "4.3.0",
+          "System.Threading.Tasks": "4.3.0"
+        }
+      },
+      "System.Diagnostics.Contracts/4.0.1": {
+        "dependencies": {
+          "System.Runtime": "4.3.0"
         }
       },
       "System.Diagnostics.Debug/4.3.0": {
@@ -931,12 +954,12 @@
       "path": "newtonsoft.json/11.0.2",
       "hashPath": "newtonsoft.json.11.0.2.nupkg.sha512"
     },
-    "Ninject/3.3.4": {
+    "Ninject/4.0.0-beta-0134": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-CmbWW97FfJuh4LEOVZM/spqXl4KAulRUjqeMwRd5J9rDMQArmIYaDMU3pyzXXHT062tbF0OPIMwI7tSOtprPfg==",
-      "path": "ninject/3.3.4",
-      "hashPath": "ninject.3.3.4.nupkg.sha512"
+      "sha512": "sha512-ck28GaeVLepLigzWVq7rxS3NeXBXAGLeNnAGuuSH8fcsMBWOOHv1mKnpkySnSlA3w6SqF1nE4PCD5f83Lc9s2w==",
+      "path": "ninject/4.0.0-beta-0134",
+      "hashPath": "ninject.4.0.0-beta-0134.nupkg.sha512"
     },
     "Ninject.Extensions.Conventions/3.3.0": {
       "type": "package",
@@ -1133,6 +1156,20 @@
       "sha512": "sha512-DHDrIxiqk1h03m6khKWV2X8p/uvN79rgSqpilL6uzpmSfxfU5ng8VcPtW4qsDsQDHiTv6IPV9TmD5M/vElPNLg==",
       "path": "system.console/4.3.0",
       "hashPath": "system.console.4.3.0.nupkg.sha512"
+    },
+    "System.Data.Common/4.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-epU8jeTe7aE7RqGHq9rZ8b0Q4Ah7DgubzHQblgZMSqgW1saW868WmooSyC5ywf8upLBkcVLDu93W9GPWUYsU2Q==",
+      "path": "system.data.common/4.1.0",
+      "hashPath": "system.data.common.4.1.0.nupkg.sha512"
+    },
+    "System.Diagnostics.Contracts/4.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HvQQjy712vnlpPxaloZYkuE78Gn353L0SJLJVeLcNASeg9c4qla2a1Xq8I7B3jZoDzKPtHTkyVO7AZ5tpeQGuA==",
+      "path": "system.diagnostics.contracts/4.0.1",
+      "hashPath": "system.diagnostics.contracts.4.0.1.nupkg.sha512"
     },
     "System.Diagnostics.Debug/4.3.0": {
       "type": "package",

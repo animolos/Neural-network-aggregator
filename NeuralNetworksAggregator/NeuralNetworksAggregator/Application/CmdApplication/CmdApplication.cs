@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NeuralNetworksAggregator.Application.CmdApplication.CommandExecutor;
+using NeuralNetworksAggregator.Application.CmdApplication.Commands;
 using Ninject;
 
 namespace NeuralNetworksAggregator.Application.CmdApplication
 {
-    public class Program
+    public class CmdApplication
     {
         private static ICommandsExecutor CreateExecutor()
         {
