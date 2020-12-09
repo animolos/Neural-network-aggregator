@@ -8,7 +8,6 @@ namespace NeuralNetworksAggregator.Application.BotCommands
     {
         public string Command => "/cat";
         public string Description => "get a picture of non-existing cat";
-
         public async Task ExecuteCommandAsync(TelegramBotClient botClient, Message message)
             => await botClient.SendPictureFromSiteAsync(message, "https://thiscatdoesnotexist.com/");
     }

@@ -28,7 +28,7 @@ namespace NeuralNetworksAggregator.Application.CmdApplication
             return container.Get<ICommandsExecutor>();
         }
 
-        static void MainX(string[] args)
+        public static void Run(string[] args)
         {
             ICommandsExecutor executor = CreateExecutor();
             //if (args.Length > 0)

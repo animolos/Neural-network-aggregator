@@ -4,6 +4,7 @@ using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -25,7 +26,7 @@ using Ninject.Extensions.Conventions;
 namespace NeuralNetworksAggregator.Application
 {
     
-    class Bot
+    public static class Bot
     {
         private static CaptionGenerator captionGenerator;
         private static TelegramBotClient botClient;
@@ -34,7 +35,7 @@ namespace NeuralNetworksAggregator.Application
         {
             new HelloCommand(), 
             new SendCatCommand(), 
-            new SendPersonCommand()
+            new SendArtWorkCommand()
         };
 
         private static void CaptionGeneratorInit()
@@ -45,9 +46,9 @@ namespace NeuralNetworksAggregator.Application
             Console.WriteLine("Инициализация завершена.");
         }
 
-        static async Task Main(string[] args)
+        public static async Task Run(string[] args)
         {          
-            // CaptionGeneratorInit();
+            CaptionGeneratorInit();
 
             var key = Environment.GetEnvironmentVariable("NeuralNetworksAggregatorBotKey");
             Trace.Assert(key is not null);
@@ -70,7 +71,7 @@ namespace NeuralNetworksAggregator.Application
                 cts.Token
             );
 
-            Console.WriteLine($"Начинаю слушать {me.Username}");
+            Trace.WriteLine($"Начинаю слушать {me.Username}");
             Console.ReadLine();
             botClient.StopReceiving();
         }
@@ -111,11 +112,11 @@ namespace NeuralNetworksAggregator.Application
                 {
                     var file = await botClient.GetFileAsync(message.Photo[^1].FileId);
                 
-                    var filepath = Path.GetTempPath() + @$"\photo_{DateTime.Now:MM_dd_yyyy_HH_mm_ss}.gif";
+                    var filepath = Path.GetTempPath() + @$"\photo_{Guid.NewGuid()}.gif";
                 
                     await using (var stream = new FileStream(filepath, FileMode.Create))
                         await botClient.DownloadFileAsync(file.FilePath, stream);
-                
+                    
                     var caption = captionGenerator.GetCaption(filepath);
                 
                     var fileName = filepath.Split(Path.DirectorySeparatorChar).Last();
@@ -128,8 +129,8 @@ namespace NeuralNetworksAggregator.Application
                             replyMarkup: new ReplyKeyboardRemove()
                         );
                     }
-                
-                    Console.WriteLine($"Отправил обратно фотографию к {message.Chat.Username} с описанием:\n{caption}");
+
+                    Trace.WriteLine($"Отправил обратно фотографию к {message.Chat.Username} с описанием:\n{caption}");
                 
                     System.IO.File.Delete(filepath);
                     break;
@@ -140,7 +141,7 @@ namespace NeuralNetworksAggregator.Application
 
             static async Task UsageAsync(Message message)
             {
-                Console.WriteLine($"С нами пытается общаться {message.Chat.Username}, он написал \"{message.Text}\"");
+                Trace.WriteLine($"С нами пытается общаться {message.Chat.Username}, он написал \"{message.Text}\"");
                 var builder = new StringBuilder();
                 foreach (var command in TextCommands)
                     builder.Append($"{command.Command} - {command.Description}\n");
@@ -158,21 +159,34 @@ namespace NeuralNetworksAggregator.Application
         public static async Task SendPictureFromSiteAsync(this TelegramBotClient botClient, Message message, string website)
         {
             await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
-            var webClient = new WebClient();
-            var filePath = Path.GetTempPath() + @$"\photo_{DateTime.Now:MM_dd_yyyy_HH_mm_ss_ffffff}.gif";
-            await webClient.DownloadFileTaskAsync(new Uri(website), filePath);
-            Console.WriteLine("Успешно сохранили картинку локально");
-            var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
-            await using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                await botClient.SendPhotoAsync(
-                    chatId: message.Chat.Id,
-                    photo: new InputOnlineFile(fileStream, fileName),
-                    replyMarkup: new ReplyKeyboardRemove()
-                );}
-            Console.WriteLine($"Отправили картинку {message.Chat.Username}");
-            System.IO.File.Delete(filePath);
-            Console.WriteLine("Успешно удалили локальную картинку");
+
+            using var client = new HttpClient();
+            await using var stream = await client.GetStreamAsync(new Uri(website));
+            await botClient.SendPhotoAsync(
+                chatId: message.Chat.Id,
+                photo: new InputOnlineFile(stream),
+                replyMarkup: new ReplyKeyboardRemove()
+            );
+
+            var bytes = new byte[0];
+            var stream2 = new MemoryStream(bytes);
+            //var webClient = new WebClient();
+            //var filePath = Path.GetTempPath() + @$"\photo_{Guid.NewGuid()}.gif";  // DateTime.Now:MM_dd_yyyy_HH_mm_ss_ffffff
+            //webClient.DownloadDataAsync(new Uri(website));
+            //await webClient.DownloadFileTaskAsync(new Uri(website), filePath);
+            //Trace.WriteLine("Успешно сохранили картинку локально");  // Trace.TraceInformation()
+            //var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
+            //await using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            //{
+            //    await botClient.SendPhotoAsync(
+            //        chatId: message.Chat.Id,
+            //        photo: new InputOnlineFile(fileStream, fileName),
+            //        replyMarkup: new ReplyKeyboardRemove()
+            //    );
+            //}
+            //Trace.WriteLine($"Отправили картинку {message.Chat.Username}");
+            //System.IO.File.Delete(filePath);
+            //Trace.WriteLine("Успешно удалили локальную картинку");
         }
     }
 }
