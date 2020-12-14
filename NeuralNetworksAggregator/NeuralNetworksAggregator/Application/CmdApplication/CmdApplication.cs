@@ -32,7 +32,7 @@ namespace NeuralNetworksAggregator.Application.CmdApplication
         {
             ICommandsExecutor executor = CreateExecutor();
             //if (args.Length > 0)
-            //    executor.Execute(args);
+            //    executor.ExecuteAsync(args);
             //else
             RunInteractiveMode(executor);
         }
