@@ -6,15 +6,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="UserInterface\**" />
+      <EmbeddedResource Remove="UserInterface\**" />
+      <None Remove="UserInterface\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.8.0" />
       <PackageReference Include="Ninject" Version="3.3.4" />
       <PackageReference Include="Ninject.Extensions.Conventions" Version="3.3.0" />
       <PackageReference Include="Ninject.Extensions.Factory" Version="3.3.3" />
       <PackageReference Include="Telegram.Bot" Version="15.7.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Infrastructure" />
-      <Folder Include="UserInterface" />
     </ItemGroup>
 
 </Project>
