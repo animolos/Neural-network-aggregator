@@ -1,65 +1,50 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using NeuralNetworksAggregator.Application.BotHandlers;
-using NeuralNetworksAggregator.Application.CmdApplication;
-using NeuralNetworksAggregator.Application.CmdApplication.CommandExecutor;
-using NeuralNetworksAggregator.Application.CmdApplication.Commands;
 using NeuralNetworksAggregator.Domain;
 using Ninject;
+using Ninject.Extensions.Conventions;
 
 namespace NeuralNetworksAggregator.Application.BotApplication
 {
     public static class BotApplication
     {
-        private static void CaptionGeneratorInit(CaptionGenerator generator)
+        private static void CaptionGeneratorInit(PythonCaptionGenerator generator)
         {
-            Trace.TraceInformation("Start CaptionGenerator init...");
+            Trace.TraceInformation("Start PythonCaptionGenerator init...");
             try
             {
                 generator.StartWork();
             }
             catch (Exception e)
             {
-                Trace.TraceError("Error while init CaptionGenerator: " + e.Message);
+                Trace.TraceError("Error while init PythonCaptionGenerator: " + e.Message);
                 return;
             }
 
-            Trace.TraceInformation("CaptionGenerator init finished");
+            Trace.TraceInformation("PythonCaptionGenerator init finished");
         }
 
-        private static Bot CreateExecutor()
+        private static Bot CreateBot()
         {
             var container = new StandardKernel();
             container.Bind<Bot>().ToSelf()
                 .InSingletonScope();
 
-            container.Bind<IHandler>().To<CaptionGenerateHandler>();
-            container.Bind<IHandler>().To<CatGenerateHandler>();
-            container.Bind<IHandler>().To<ArtWorkGenerateHandler>();
-            container.Bind<IHandler>().To<HelloUserHandler>();
-            container.Bind<IHandler>().To<HelpMessageHandler>();
-            // container.Bind<IHandler>().To<...>();
+            container.Bind(c => c.FromThisAssembly().SelectAllClasses().BindAllInterfaces());
+            container.Bind(c => c.FromThisAssembly().SelectAllClasses().BindAllBaseClasses());
 
-            container.Bind<BaseGenerator>().To<ArtWorkGenerator>();
-            container.Bind<BaseGenerator>().To<CatGenerator>();
-
-            container.Bind<CaptionGenerator>().ToSelf()
+            container.Bind<PythonCaptionGenerator>().ToSelf()
                 .InSingletonScope();
 
-            CaptionGeneratorInit(container.Get<CaptionGenerator>());
+            CaptionGeneratorInit(container.Get<PythonCaptionGenerator>());
 
             return container.Get<Bot>();
         }
 
         public static async Task Run(string[] args)
         {
-            var bot = CreateExecutor();
+            var bot = CreateBot();
             await bot.Run(args);
         }
     }

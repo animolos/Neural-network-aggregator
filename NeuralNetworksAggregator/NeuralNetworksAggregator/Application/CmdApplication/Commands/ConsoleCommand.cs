@@ -10,6 +10,6 @@
 
         public string Name { get; }
         public string Help { get; }
-        public abstract void Execute(string[] args);
+        public abstract void ExecuteAsync(string[] args);
     }
 }

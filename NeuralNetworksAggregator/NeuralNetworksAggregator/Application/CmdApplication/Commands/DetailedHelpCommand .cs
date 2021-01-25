@@ -9,13 +9,13 @@ namespace NeuralNetworksAggregator.Application.CmdApplication
         private readonly TextWriter writer;
 
         public DetailedHelpCommand(Lazy<ICommandsExecutor> executor, TextWriter writer)
-            : base("help", "help <command>      # prints help for <command>")
+            : base("detailed", "detailed <command>      # prints help for <command>")
         {
             this.executor = executor;
             this.writer = writer;
         }
 
-        public override void Execute(string[] args)
+        public override void ExecuteAsync(string[] args)
         {
             var commandName = args[0];
             var cmd = executor.Value.FindCommandByName(commandName);

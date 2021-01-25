@@ -1,17 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NeuralNetworksAggregator.Application.BotHandlers;
+using NeuralNetworksAggregator.Infrastructure;
+using NeuralNetworksAggregator.Infrastructure.Repository;
+
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
-
 
 namespace NeuralNetworksAggregator.Application
 {
@@ -21,20 +27,25 @@ namespace NeuralNetworksAggregator.Application
 
         private readonly IHandler[] handlers;
 
+        private readonly AsyncLock asyncLock;
+
+        private readonly Repository<Message> repository;
+
         public Bot(IHandler[] handlers)
         {
             this.handlers = handlers;
+            asyncLock = new AsyncLock();
+            repository = new Repository<Message>();
         }
 
         public async Task Run(string[] args)
         {
-            var key = Environment.GetEnvironmentVariable("NeuralNetworksAggregatorBotKey");
-            Trace.Assert(key is not null);
-            
-            botClient = new TelegramBotClient(key);
+            var token = Environment.GetEnvironmentVariable("NeuralNetworksAggregatorBotKey");
 
+            Trace.Assert(token is not null);
+
+            botClient = new TelegramBotClient(token);
             var me = await botClient.GetMeAsync();
-
             Console.Title = me.Username;
 
             var cts = new CancellationTokenSource();
@@ -46,7 +57,7 @@ namespace NeuralNetworksAggregator.Application
                 cts.Token
             );
 
-            Trace.TraceInformation($"Начинаю слушать {me.Username}");
+            Trace.TraceInformation($"Start listening {me.Username}");
             Console.ReadLine();
             botClient.StopReceiving();
         }
@@ -55,15 +66,16 @@ namespace NeuralNetworksAggregator.Application
         {
             var callbackQuery = callbackQueryEventArgs.CallbackQuery;
 
-            await botClient.AnswerCallbackQueryAsync(
-                callbackQueryId: callbackQuery.Id,
-                text: $"Received {callbackQuery.Data}"
-            );
+            await botClient.DeleteMessageAsync(callbackQuery.From.Id, callbackQuery.Message.MessageId);
 
-            await botClient.SendTextMessageAsync(
-                chatId: callbackQuery.Message.Chat.Id,
-                text: $"Received {callbackQuery.Data}"
-            );
+            var handlerName = callbackQuery.Data;
+            var handlerToExecute = handlers.First(handler => handler.Name == handlerName);
+
+            var message = repository.Get(callbackQuery.From.Username);
+
+            await handlerToExecute.ExecuteAsync(message, botClient);
+
+            asyncLock.Release(callbackQuery.From.Username);
         }
 
         private async void BotOnMessageReceivedAsync(object sender, MessageEventArgs messageEventArgs)
@@ -72,83 +84,76 @@ namespace NeuralNetworksAggregator.Application
             if (message == null)
                 return;
 
+            var username = message.Chat.Username;
+
+            await asyncLock.AcquireLockAsync(username);
+
             var handlersToExecute = handlers
                 .Select(handler => (handler.GetScore(message, botClient), handler))
                 .Where(pair => pair.Item1 > 0)
-                .OrderBy(pair => pair.Item1)
+                .OrderByDescending(pair => pair.Item1)
                 .Take(4)
-                .ToList();
+                .ToArray();
 
-            if (handlersToExecute.Count == 0)
+            if (handlersToExecute.Length == 0)
             {
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: "I can't understand you :(\nPlease, use /help.",
                     replyMarkup: new ReplyKeyboardRemove()
                 );
+                asyncLock.Release(username);
                 return;
             }
-            //await SendInlineKeyboard(message);
 
-            foreach (var (score, handler) in handlersToExecute)
+            if (handlersToExecute.Length == 1)
             {
-                // Trace.TraceInformation($"Score: {score}. Name: {handler.Name}");
-                await handler.ExecuteAsync(message, botClient);
+                await handlersToExecute.First().handler.ExecuteAsync(message, botClient);
+                asyncLock.Release(username);
+                return;
             }
 
-            //async Task SendInlineKeyboard(Message message)
-            //{
-            //    await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
+            repository.CreateOrUpdate(username, message);
 
-            //    // Simulate longer running task
-            //    await Task.Delay(500);
+            await SendInlineKeyboard(message, handlersToExecute
+                .Select(pair => pair.handler)
+                .ToArray());
+        }
 
-            //    var inlineKeyboard = new InlineKeyboardMarkup(new[]
-            //    {
-            //        // first row
-            //        new []
-            //        {
-            //            InlineKeyboardButton.WithCallbackData("1.0"),
-            //            InlineKeyboardButton.WithCallBackGame("1.1"),
-            //            //InlineKeyboardButton.WithCallbackData("1.2", "12"),
-            //        },
-            //        // second row
-            //        new []
-            //        {
-            //            InlineKeyboardButton.WithCallBackGame("2.0"),
-            //            InlineKeyboardButton.WithCallBackGame("2.1"),
-            //        }
-            //    });
-            //    await botClient.SendTextMessageAsync(
-            //        chatId: message.Chat.Id,
-            //        text: "Choose",
-            //        replyMarkup: inlineKeyboard
-            //    );
-            //}
+        private async Task SendInlineKeyboard(Message message, IEnumerable<IHandler> handlersToExecute)
+        {
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
 
-            //async Task SendReplyKeyboard(Message message)
-            //{
-            //    var replyKeyboardMarkup = new ReplyKeyboardMarkup(
-            //        new KeyboardButton[][]
-            //        {
-            //            new KeyboardButton[] { "1.1", "1.2" },
-            //            new KeyboardButton[] { "2.1", "2.2" },
-            //        },
-            //        resizeKeyboard: true
-            //    );
+            var inlineKeyboard = new InlineKeyboardMarkup(handlersToExecute
+                .Select(handler =>
+                    new[] {InlineKeyboardButton.WithCallbackData(handler.Description, handler.Name)})
+                .ToArray());
 
-            //    await botClient.SendTextMessageAsync(
-            //        chatId: message.Chat.Id,
-            //        text: "Choose",
-            //        replyMarkup: replyKeyboardMarkup
-            //    );
-            //}
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: "Choose action",
+                replyMarkup: inlineKeyboard
+            );
         }
     }
 
-    public static class BotExtensions
+    public static class TelegramBotClientExtensions
     {
-        public static async Task<string> DownloadPhotoFromMessage(this TelegramBotClient botClient, Message message)
+        private static readonly string botToken;
+
+        static TelegramBotClientExtensions()
+        {
+            botToken = Environment.GetEnvironmentVariable("NeuralNetworksAggregatorBotKey");
+        }
+
+        public static async Task<Stream> DownloadFileAsStreamAsync(this TelegramBotClient _, string filePath)
+        {
+            var uriString = @$"https://api.telegram.org/file/bot{botToken}/{filePath}";
+            using var client = new HttpClient();
+            return await client.GetStreamAsync(new Uri(uriString));
+        }
+
+        public static async Task<string> DownloadPhotoFromMessageAsync(this TelegramBotClient botClient, Message message)
         {
             var file = await botClient.GetFileAsync(message.Photo[^1].FileId);
 
@@ -160,17 +165,35 @@ namespace NeuralNetworksAggregator.Application
             return filepath;
         }
 
-        public static async Task SendPictureFromSiteAsync(this TelegramBotClient botClient, Message message, byte[] bytes)
+        public static async Task SendPictureFromBytesAsync(this TelegramBotClient botClient, long chatId,
+            byte[] bytes)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
+            await botClient.SendChatActionAsync(chatId, ChatAction.UploadPhoto);
 
             await using var stream = new MemoryStream(bytes);
 
             await botClient.SendPhotoAsync(
-                chatId: message.Chat.Id,
+                chatId: chatId,
                 photo: new InputOnlineFile(stream),
                 replyMarkup: new ReplyKeyboardRemove()
             );
+        }
+    }
+
+    public static class MessageExtensions
+    {
+        public static double GetMatch(this Message message, params string[] matchWords)
+        {
+            if (message.Type != MessageType.Text && message.Type != MessageType.Photo)
+                return 0;
+
+            var text = message.Type == MessageType.Text ? message.Text : message.Caption;
+
+            if (text is null)
+                return 0;
+
+            return matchWords.Sum(word =>
+                Regex.IsMatch(text, @$"\b{word}\b", RegexOptions.IgnoreCase) ? 1 : 0);
         }
     }
 }

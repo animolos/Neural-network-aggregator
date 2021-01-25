@@ -1,9 +1,7 @@
-﻿using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using NeuralNetworksAggregator.Domain;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace NeuralNetworksAggregator.Application.BotHandlers
 {
@@ -21,20 +19,10 @@ namespace NeuralNetworksAggregator.Application.BotHandlers
 
         public async Task ExecuteAsync(Message message, TelegramBotClient botClient)
         {
-            await botClient.SendPictureFromSiteAsync(message, await generator.GetBytes());
+            await botClient.SendPictureFromBytesAsync(message.Chat.Id, await generator.GetBytes());
         }
 
         public double GetScore(Message message, TelegramBotClient botClient)
-        {
-            if (message.Type != MessageType.Text && message.Type != MessageType.Photo)
-                return 0;
-
-            var text = message.Type == MessageType.Text ? message.Text : message.Caption;
-
-            if (text is null)
-                return 0;
-
-            return Regex.IsMatch(text, @"\bart\b", RegexOptions.IgnoreCase) ? 1 : 0;
-        }
+            => message.GetMatch("art", "picture", "image", "artwork", "painting", "арт", "картина", "пикча");
     }
 }

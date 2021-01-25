@@ -9,13 +9,13 @@ namespace NeuralNetworksAggregator.Application.CmdApplication
         private readonly TextWriter writer;
 
         public HelpCommand(Lazy<ICommandsExecutor> executor, TextWriter writer)
-            : base("h", "h      # prints available commands list")
+            : base("help", "help      # prints available commands list")
         {
             this.executor = executor;
             this.writer = writer;
         }
 
-        public override void Execute(string[] args)
+        public override void ExecuteAsync(string[] args)
         {
             writer.WriteLine("Available commands: " +
                              string.Join(", ", executor.Value.GetAvailableCommandName()));

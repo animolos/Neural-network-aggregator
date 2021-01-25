@@ -3,13 +3,13 @@ using NeuralNetworksAggregator.Domain;
 
 namespace NeuralNetworksAggregator.Application.CmdApplication
 {
-    public class CatCommand : ConsoleCommand
+    public class ArtWorkCommand : ConsoleCommand
     {
-        private readonly CatGenerator generator;
+        private readonly ArtWorkGenerator generator;
         private readonly TextWriter writer;
 
-        public CatCommand(CatGenerator generator, TextWriter writer)
-            : base("cat", "cat <directoryPath>      # downloads cat")
+        public ArtWorkCommand(ArtWorkGenerator generator, TextWriter writer)
+            : base("art", "art <directoryPath>      # downloads art-work")
         {
             this.generator = generator;
             this.writer = writer;
@@ -26,7 +26,7 @@ namespace NeuralNetworksAggregator.Application.CmdApplication
             var bytes = await generator.GetBytes();
             await File.WriteAllBytesAsync(args[0], bytes);
 
-            await writer.WriteLineAsync($"Cat downloaded successfully.\nFull path to file: {args[0]}");
+            await writer.WriteLineAsync($"Art downloaded successfully.\nFull path to file: {args[0]}");
         }
     }
 }

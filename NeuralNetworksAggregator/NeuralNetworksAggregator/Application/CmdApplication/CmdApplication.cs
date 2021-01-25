@@ -1,17 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NeuralNetworksAggregator.Application.CmdApplication.CommandExecutor;
-using NeuralNetworksAggregator.Application.CmdApplication.Commands;
+using NeuralNetworksAggregator.Domain;
 using Ninject;
+using Ninject.Extensions.Conventions;
 
 namespace NeuralNetworksAggregator.Application.CmdApplication
 {
     public class CmdApplication
     {
+        private static void CaptionGeneratorInit(PythonCaptionGenerator generator)
+        {
+            Trace.TraceInformation("Start PythonCaptionGenerator init...");
+            try
+            {
+                generator.StartWork();
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError("Error while init PythonCaptionGenerator: " + e.Message);
+                return;
+            }
+
+            Trace.TraceInformation("PythonCaptionGenerator init finished");
+        }
+
         private static ICommandsExecutor CreateExecutor()
         {
             var container = new StandardKernel();
@@ -19,21 +33,19 @@ namespace NeuralNetworksAggregator.Application.CmdApplication
             container.Bind<ICommandsExecutor>().To<CommandsExecutor>()
                 .InSingletonScope();
 
-            container.Bind<ConsoleCommand>().To<HelpCommand>();
-            container.Bind<ConsoleCommand>().To<DetailedHelpCommand>();
-            container.Bind<ConsoleCommand>().To<CatCommand>();
-            container.Bind<ConsoleCommand>().To<CaptionCommand>();
-            container.Bind<NeuralNetworksAggregator>().ToSelf().InSingletonScope();
+            container.Bind(c => c.FromThisAssembly().SelectAllClasses().BindAllBaseClasses());
+
+            container.Bind<PythonCaptionGenerator>().ToSelf()
+                .InSingletonScope();
+
+            CaptionGeneratorInit(container.Get<PythonCaptionGenerator>());
 
             return container.Get<ICommandsExecutor>();
         }
 
         public static void Run(string[] args)
         {
-            ICommandsExecutor executor = CreateExecutor();
-            //if (args.Length > 0)
-            //    executor.ExecuteAsync(args);
-            //else
+            var executor = CreateExecutor();
             RunInteractiveMode(executor);
         }
 

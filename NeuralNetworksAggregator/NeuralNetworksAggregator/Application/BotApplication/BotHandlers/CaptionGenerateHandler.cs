@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NeuralNetworksAggregator.Domain;
 using Telegram.Bot;
@@ -16,22 +13,25 @@ namespace NeuralNetworksAggregator.Application.BotHandlers
     public class CaptionGenerateHandler : IHandler
     {
         public string Name => "Caption generator";
-        public string Description => "send me photo to get caption";
+        public string Description => "get caption by photo";
 
-        private readonly CaptionGenerator generator;
+        private readonly PythonCaptionGenerator generator;
 
-        public CaptionGenerateHandler(CaptionGenerator generator)
+        public CaptionGenerateHandler(PythonCaptionGenerator generator)
         {
             this.generator = generator;
         }
 
         public async Task ExecuteAsync(Message message, TelegramBotClient botClient)
         {
-            var filepath = await botClient.DownloadPhotoFromMessage(message);
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
+
+            var filepath = await botClient.DownloadPhotoFromMessageAsync(message);
 
             var caption = generator.GetCaption(filepath);
 
             var fileName = filepath.Split(Path.DirectorySeparatorChar).Last();
+
             await using (var fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 await botClient.SendPhotoAsync(
